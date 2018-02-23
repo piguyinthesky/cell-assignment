@@ -29,7 +29,7 @@ public class Ribosome extends Stage {
 
 	private final int numPairs = 8;
 	private AminoAcid[] aacids = new AminoAcid[numPairs];
-	private final int aacidw = CellGame.WIDTH / (2 * numPairs + 1);
+	private final int LENGTH = CellGame.WIDTH / (2 * numPairs + 1);
 	private AminoAcid[] bases = new AminoAcid[numPairs * 2 + 1];
 
 	private Random random;
@@ -41,14 +41,14 @@ public class Ribosome extends Stage {
 		random = new Random();
 
 		for (int i = 0; i < numPairs; i++) {
-			aacids[i] = new AminoAcid(random.nextInt(4), aacidw * (i * 2 + 1));
+			aacids[i] = new AminoAcid(random.nextInt(4), LENGTH * (i * 2 + 1));
 		}
 		
 		for (int i = 0; i < bases.length; i++) {
 			if (i % 2 == 0) {
-				bases[i] = new AminoAcid(PHOSPHATE, aacidw * i);
+				bases[i] = new AminoAcid(PHOSPHATE, LENGTH * i);
 			} else {
-				bases[i] = new AminoAcid(GLUCOSE, aacidw * i);
+				bases[i] = new AminoAcid(GLUCOSE, LENGTH * i);
 			}
 		}
 		
@@ -59,13 +59,13 @@ public class Ribosome extends Stage {
 	}
 
 	private void createShapes() {
-		int[] trixpoints = { 0, aacidw, aacidw / 2 };
-		int[] triypoints = { 0, 0, aacidw / 2 };
+		int[] trixpoints = { 0, LENGTH, LENGTH / 2 };
+		int[] triypoints = { 0, 0, LENGTH / 2 };
 		shapes[TRIANGLE] = new Area(new Polygon(trixpoints, triypoints, 3));
 	}
 	
 	private Area shiftDown(Area shape) {
-		AffineTransform down = AffineTransform.getTranslateInstance(0, aacidw);
+		AffineTransform down = AffineTransform.getTranslateInstance(0, LENGTH);
 		return new Area(down.createTransformedShape(shape));
 	}
 
@@ -101,18 +101,18 @@ public class Ribosome extends Stage {
 
 		public Area bound;
 
-		private Area square = new Area(new Rectangle(0, 0, aacidw, aacidw));
+		private Area square = new Area(new Rectangle(0, 0, LENGTH, LENGTH));
 
-		private Area circle = new Area(new Ellipse2D.Double(0, aacidw / 2, aacidw, aacidw));
+		private Area circle = new Area(new Ellipse2D.Double(0, LENGTH / 2, LENGTH, LENGTH));
 
-		private int[] trapxpoints1 = { 0, aacidw / 3, aacidw / 3 };
-		private int[] trapxpoints2 = { aacidw, aacidw * 2 / 3, aacidw * 2 / 3 };
-		private int[] trapypoints = { aacidw, aacidw, aacidw * 4 / 3 };
+		private int[] trapxpoints1 = { 0, LENGTH / 3, LENGTH / 3 };
+		private int[] trapxpoints2 = { LENGTH, LENGTH * 2 / 3, LENGTH * 2 / 3 };
+		private int[] trapypoints = { LENGTH, LENGTH, LENGTH * 4 / 3 };
 		private Area tri1 = new Area(new Polygon(trapxpoints1, trapypoints, 3));
 		private Area tri2 = new Area(new Polygon(trapxpoints2, trapypoints, 3));
-		private Area ssquare = new Area(new Rectangle(aacidw / 3, aacidw, aacidw / 3, aacidw / 3));
+		private Area ssquare = new Area(new Rectangle(LENGTH / 3, LENGTH, LENGTH / 3, LENGTH / 3));
 
-		AffineTransform h2 = AffineTransform.getTranslateInstance(0, aacidw);
+		AffineTransform h2 = AffineTransform.getTranslateInstance(0, LENGTH);
 		private Area square2 = new Area(h2.createTransformedShape(square));
 		private Area circle2 = new Area(h2.createTransformedShape(circle));
 		private Area tri12 = new Area(h2.createTransformedShape(tri1));
@@ -172,7 +172,7 @@ public class Ribosome extends Stage {
 				Area phosphate = square;
 				phosphate.subtract(ssquare);
 
-				at.translate(0, -aacidw);
+				at.translate(0, -LENGTH);
 				this.bound = new Area(at.createTransformedShape(phosphate));
 				break;
 				
@@ -182,7 +182,7 @@ public class Ribosome extends Stage {
 				Area sugar = square;
 				sugar.add(shapes[TRIANGLE]);
 				
-				at.translate(0, -aacidw);
+				at.translate(0, -LENGTH);
 				this.bound = new Area(at.createTransformedShape(sugar));
 			}
 		}
