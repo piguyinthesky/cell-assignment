@@ -23,6 +23,8 @@ public class Ribosome extends Stage {
 	private final int SQUARE = 0;
 	private final int TRIANGLE = 1;
 	private final int CIRCLE = 2;
+	private final int TRAPEZOID = 3;
+	private final int SMALLSQUARE = 4;
 	private Area[] shapes = new Area[6];
 
 	private final int BASEH = CellGame.HEIGHT / 4;
@@ -51,11 +53,6 @@ public class Ribosome extends Stage {
 				bases[i] = new AminoAcid(GLUCOSE, LENGTH * i);
 			}
 		}
-		
-		for (int i = 0; i < bases.length; i++) {
-			System.out.println(bases[i].id);
-			System.out.println(bases[i].bound);
-		}
 	}
 
 	private void createShapes() {
@@ -63,10 +60,21 @@ public class Ribosome extends Stage {
 		int[] trixpoints = { 0, LENGTH, LENGTH / 2 };
 		int[] triypoints = { 0, 0, LENGTH / 2 };
 		shapes[TRIANGLE] = new Area(new Polygon(trixpoints, triypoints, 3));
+		shapes[CIRCLE] = new Area(new Ellipse2D.Double(0, 0, LENGTH, LENGTH));
+		
+		shapes[SMALLSQUARE] = new Area(new Rectangle(0, 0, LENGTH / 3, LENGTH / 3));
+
+		int[] trapxpoints1 = { 0, LENGTH / 3, LENGTH / 3 };
+		int[] trapxpoints2 = { LENGTH, LENGTH * 2 / 3, LENGTH * 2 / 3 };
+		int[] trapypoints = { 0, 0, LENGTH / 3 };
+		
+		shapes[TRAPEZOID] = new Area(new Polygon(trapxpoints1, trapypoints, 3));
+		shapes[TRAPEZOID].add(new Area(new Polygon(trapxpoints2, trapypoints, 3)));
+		shapes[TRAPEZOID].add(shift(shapes[SMALLSQUARE], LENGTH / 3, 0));
 	}
 	
-	private Area shiftDown(Area shape) {
-		AffineTransform down = AffineTransform.getTranslateInstance(0, LENGTH);
+	private Area shift(Area shape, int x, int y) {
+		AffineTransform down = AffineTransform.getTranslateInstance(x, y);
 		return new Area(down.createTransformedShape(shape));
 	}
 	
@@ -106,24 +114,6 @@ public class Ribosome extends Stage {
 
 		public Area bound;
 
-		private Area square = (Area) shapes[SQUARE].clone();
-
-		private Area circle = new Area(new Ellipse2D.Double(0, LENGTH / 2, LENGTH, LENGTH));
-
-		private int[] trapxpoints1 = { 0, LENGTH / 3, LENGTH / 3 };
-		private int[] trapxpoints2 = { LENGTH, LENGTH * 2 / 3, LENGTH * 2 / 3 };
-		private int[] trapypoints = { LENGTH, LENGTH, LENGTH * 4 / 3 };
-		private Area tri1 = new Area(new Polygon(trapxpoints1, trapypoints, 3));
-		private Area tri2 = new Area(new Polygon(trapxpoints2, trapypoints, 3));
-		private Area ssquare = new Area(new Rectangle(LENGTH / 3, LENGTH, LENGTH / 3, LENGTH / 3));
-
-		AffineTransform h2 = AffineTransform.getTranslateInstance(0, LENGTH);
-		private Area square2 = new Area(h2.createTransformedShape(square));
-		private Area circle2 = new Area(h2.createTransformedShape(circle));
-		private Area tri12 = new Area(h2.createTransformedShape(tri1));
-		private Area tri22 = new Area(h2.createTransformedShape(tri2));
-		private Area ssquare2 = new Area(h2.createTransformedShape(ssquare));
-
 		public AminoAcid(int id, int x) {
 			this.id = id;
 			AffineTransform at = AffineTransform.getTranslateInstance(x, BASEH);
@@ -132,50 +122,46 @@ public class Ribosome extends Stage {
 			case ADENINE:
 				this.color = Color.BLUE;
 
-				Area adenine = shapes[SQUARE];
+				Area adenine = getShape(SQUARE);
 				adenine.subtract(getShape(TRIANGLE));
-				adenine.add(circle);
+				adenine.add(shift(getShape(CIRCLE), 0, LENGTH / 2));
 				this.bound = new Area(at.createTransformedShape(adenine));
 				break;
 
 			case THYMINE:
 				this.color = Color.YELLOW;
 
-				Area thymine = square;
+				Area thymine = getShape(SQUARE);
 				thymine.subtract(getShape(TRIANGLE));
-				thymine.add(square2);
-				thymine.add(circle2);
+				thymine.add(shift(getShape(SQUARE), 0, LENGTH));
+				thymine.add(shift(getShape(CIRCLE), 0, LENGTH * 3 / 2));
 				this.bound = new Area(at.createTransformedShape(thymine));
 				break;
 
 			case CYTOSINE:
 				this.color = Color.RED;
 
-				Area cytosine = square;
+				Area cytosine = getShape(SQUARE);
 				cytosine.subtract(getShape(TRIANGLE));
-				cytosine.add(tri1);
-				cytosine.add(tri2);
-				cytosine.add(ssquare);
+				cytosine.add(shift(getShape(TRAPEZOID), 0, LENGTH));
 				this.bound = new Area(at.createTransformedShape(cytosine));
 				break;
 
 			case GUANINE:
 				this.color = Color.GREEN;
 
-				Area guanine = square;
+				Area guanine = getShape(SQUARE);
 				guanine.subtract(getShape(TRIANGLE));
-				guanine.add(square2);
-				guanine.add(tri12);
-				guanine.add(tri22);
-				guanine.add(ssquare2);
+				guanine.add(shift(getShape(SQUARE), 0, LENGTH));
+				guanine.add(shift(getShape(TRAPEZOID), 0, LENGTH * 2));
 				this.bound = new Area(at.createTransformedShape(guanine));
 				break;
 				
 			case PHOSPHATE:
 				this.color = Color.GRAY;
 				
-				Area phosphate = square;
-				phosphate.subtract(ssquare);
+				Area phosphate = getShape(SQUARE);
+				phosphate.subtract(getShape(SMALLSQUARE));
 
 				at.translate(0, -LENGTH);
 				this.bound = new Area(at.createTransformedShape(phosphate));
@@ -184,11 +170,9 @@ public class Ribosome extends Stage {
 			case GLUCOSE:
 				this.color = Color.WHITE;
 				
-				Area sugar = square;
-				sugar.add(getShape(TRIANGLE));
-				
-				at.translate(0, -LENGTH);
-				this.bound = new Area(at.createTransformedShape(sugar));
+				Area glucose = getShape(SQUARE);
+				glucose.add(getShape(TRIANGLE));
+				this.bound = shift(glucose, 0, -LENGTH);
 				break;
 			}
 		}
