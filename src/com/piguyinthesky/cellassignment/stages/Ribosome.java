@@ -59,6 +59,7 @@ public class Ribosome extends Stage {
 	}
 
 	private void createShapes() {
+		shapes[SQUARE] = new Area(new Rectangle(0, 0, LENGTH, LENGTH));
 		int[] trixpoints = { 0, LENGTH, LENGTH / 2 };
 		int[] triypoints = { 0, 0, LENGTH / 2 };
 		shapes[TRIANGLE] = new Area(new Polygon(trixpoints, triypoints, 3));
@@ -67,6 +68,10 @@ public class Ribosome extends Stage {
 	private Area shiftDown(Area shape) {
 		AffineTransform down = AffineTransform.getTranslateInstance(0, LENGTH);
 		return new Area(down.createTransformedShape(shape));
+	}
+	
+	private Area getShape(int shape) {
+		return (Area) shapes[shape].clone();
 	}
 
 	@Override
@@ -101,7 +106,7 @@ public class Ribosome extends Stage {
 
 		public Area bound;
 
-		private Area square = new Area(new Rectangle(0, 0, LENGTH, LENGTH));
+		private Area square = (Area) shapes[SQUARE].clone();
 
 		private Area circle = new Area(new Ellipse2D.Double(0, LENGTH / 2, LENGTH, LENGTH));
 
@@ -127,8 +132,8 @@ public class Ribosome extends Stage {
 			case ADENINE:
 				this.color = Color.BLUE;
 
-				Area adenine = square;
-				adenine.subtract(shapes[TRIANGLE]);
+				Area adenine = shapes[SQUARE];
+				adenine.subtract(getShape(TRIANGLE));
 				adenine.add(circle);
 				this.bound = new Area(at.createTransformedShape(adenine));
 				break;
@@ -137,7 +142,7 @@ public class Ribosome extends Stage {
 				this.color = Color.YELLOW;
 
 				Area thymine = square;
-				thymine.subtract(shapes[TRIANGLE]);
+				thymine.subtract(getShape(TRIANGLE));
 				thymine.add(square2);
 				thymine.add(circle2);
 				this.bound = new Area(at.createTransformedShape(thymine));
@@ -147,7 +152,7 @@ public class Ribosome extends Stage {
 				this.color = Color.RED;
 
 				Area cytosine = square;
-				cytosine.subtract(shapes[TRIANGLE]);
+				cytosine.subtract(getShape(TRIANGLE));
 				cytosine.add(tri1);
 				cytosine.add(tri2);
 				cytosine.add(ssquare);
@@ -158,7 +163,7 @@ public class Ribosome extends Stage {
 				this.color = Color.GREEN;
 
 				Area guanine = square;
-				guanine.subtract(shapes[TRIANGLE]);
+				guanine.subtract(getShape(TRIANGLE));
 				guanine.add(square2);
 				guanine.add(tri12);
 				guanine.add(tri22);
@@ -180,10 +185,11 @@ public class Ribosome extends Stage {
 				this.color = Color.WHITE;
 				
 				Area sugar = square;
-				sugar.add(shapes[TRIANGLE]);
+				sugar.add(getShape(TRIANGLE));
 				
 				at.translate(0, -LENGTH);
 				this.bound = new Area(at.createTransformedShape(sugar));
+				break;
 			}
 		}
 
