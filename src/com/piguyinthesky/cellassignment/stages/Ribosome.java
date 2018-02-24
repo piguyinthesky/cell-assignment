@@ -28,12 +28,14 @@ public class Ribosome extends Stage {
 	private final int SMALLSQUARE = 4;
 	private Area[] basicShapes = new Area[6];
 
-	private final int BASEH = CellGame.HEIGHT / 4;
-
 	private final int numPairs = 8;
-	private AminoAcid[] aacids = new AminoAcid[numPairs];
+	private final int BASEH = CellGame.HEIGHT / 4;
 	private final int LENGTH = CellGame.WIDTH / (2 * numPairs + 1);
+	private final int BOTTOMBASEH = BASEH + LENGTH * 5;
+
+	private AminoAcid[] aacids = new AminoAcid[numPairs];
 	private AminoAcid[] bases = new AminoAcid[numPairs * 2 + 1];
+	private AminoAcid[] pieces = new AminoAcid[aacids.length + bases.length];
 
 	private Random random;
 
@@ -45,16 +47,18 @@ public class Ribosome extends Stage {
 		random = new Random();
 
 		for (int i = 0; i < numPairs; i++) {
-			aacids[i] = new AminoAcid(random.nextInt(4), LENGTH * (i * 2 + 1));
+			aacids[i] = new AminoAcid(random.nextInt(4), LENGTH * (i * 2 + 1), BASEH);
 		}
 
 		for (int i = 0; i < bases.length; i++) {
 			if (i % 2 == 0) {
-				bases[i] = new AminoAcid(PHOSPHATE, LENGTH * i);
+				bases[i] = new AminoAcid(PHOSPHATE, LENGTH * i, BASEH);
 			} else {
-				bases[i] = new AminoAcid(GLUCOSE, LENGTH * i);
+				bases[i] = new AminoAcid(GLUCOSE, LENGTH * i, BASEH);
 			}
 		}
+
+		generatePieces();
 	}
 
 	private void generateBasicShapes() {
@@ -96,11 +100,26 @@ public class Ribosome extends Stage {
 
 		shapes[PHOSPHATE] = getShape(SQUARE);
 		shapes[PHOSPHATE].subtract(shift(getShape(SMALLSQUARE), 0, LENGTH / 3));
+		shapes[PHOSPHATE].subtract(shift(getShape(SMALLSQUARE), LENGTH * 2 / 3, LENGTH / 3));
 
 		shapes[GLUCOSE] = getShape(SQUARE);
 		shapes[GLUCOSE].add(shift(getShape(TRIANGLE), 0, LENGTH));
 		shapes[GLUCOSE].add(shift(getShape(SMALLSQUARE), -LENGTH / 3, LENGTH / 3));
 		shapes[GLUCOSE].add(shift(getShape(SMALLSQUARE), LENGTH, LENGTH / 3));
+	}
+
+	private void generatePieces() {
+		AffineTransform upsidedown = AffineTransform.getRotateInstance(Math.PI);
+		for (int i = 0; i < bases.length; i++) {
+			pieces[i] = new AminoAcid(bases[i].id, i * LENGTH, BOTTOMBASEH - LENGTH);
+		}
+		
+		for (int i = 0; i < aacids.length; i++) {
+			int y = random.nextInt(CellGame.HEIGHT - BOTTOMBASEH) + BOTTOMBASEH;
+			int x = random.nextInt(CellGame.WIDTH);
+			pieces[i + bases.length] = new AminoAcid(aacids[i].id, x, y);
+//			pieces[i + bases.length].bound = new Area(upsidedown.createTransformedShape(pieces[i + bases.length].bound));
+		}
 	}
 
 	private Area shift(Area shape, int x, int y) {
@@ -121,6 +140,9 @@ public class Ribosome extends Stage {
 	public void draw(Graphics2D g) {
 		super.draw(g);
 
+		g.setColor(Color.WHITE);
+		g.drawLine(0, BOTTOMBASEH, CellGame.WIDTH, BOTTOMBASEH);
+		
 		for (int i = 0; i < numPairs; i++) {
 			g.setColor(aacids[i].color);
 			g.fill(aacids[i].bound);
@@ -129,6 +151,11 @@ public class Ribosome extends Stage {
 		for (int i = 0; i < bases.length; i++) {
 			g.setColor(bases[i].color);
 			g.fill(bases[i].bound);
+		}
+
+		for (int i = 0; i < pieces.length; i++) {
+			g.setColor(pieces[i].color);
+			g.fill(pieces[i].bound);
 		}
 	}
 
@@ -144,9 +171,9 @@ public class Ribosome extends Stage {
 
 		public Area bound;
 
-		public AminoAcid(int id, int x) {
+		public AminoAcid(int id, int x, int y) {
 			this.id = id;
-			AffineTransform at = AffineTransform.getTranslateInstance(x, BASEH);
+			AffineTransform at = AffineTransform.getTranslateInstance(x, y);
 
 			switch (id) {
 			case ADENINE:
