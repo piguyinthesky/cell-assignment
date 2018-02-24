@@ -8,13 +8,14 @@ import java.awt.event.MouseMotionListener;
 public class InputHandler implements MouseListener, MouseMotionListener {
 	
 	public static Point currPos;
+	public static Point prevPos;
 	public static Point startPos;
 	public static Point releasePos;
 	
 	public static boolean pressed = false;
 	
 	public InputHandler() {
-		currPos = startPos = releasePos = new Point(-1, -1);
+		currPos = prevPos = startPos = releasePos = new Point(-1, -1);
 	}
 	
 	@Override
@@ -40,11 +41,13 @@ public class InputHandler implements MouseListener, MouseMotionListener {
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
+		prevPos = currPos;
 		currPos = e.getPoint();
 	}
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
+		prevPos = currPos;
 		currPos = e.getPoint();
 	}
 

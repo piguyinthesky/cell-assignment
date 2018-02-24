@@ -4,11 +4,13 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.util.Random;
 
+import com.piguyinthesky.cellassignment.handlers.InputHandler;
 import com.piguyinthesky.cellassignment.main.CellGame;
 
 public class Ribosome extends Stage {
@@ -37,6 +39,8 @@ public class Ribosome extends Stage {
 	private AminoAcid[] bases = new AminoAcid[numPairs * 2 + 1];
 	private AminoAcid[] pieces = new AminoAcid[aacids.length + bases.length];
 
+	private int pickedupind;
+
 	private Random random;
 
 	public Ribosome(StageManager sm) {
@@ -47,14 +51,14 @@ public class Ribosome extends Stage {
 		random = new Random();
 
 		for (int i = 0; i < numPairs; i++) {
-			aacids[i] = new AminoAcid(random.nextInt(4), LENGTH * (i * 2 + 1), BASEH);
+			aacids[i] = new AminoAcid(random.nextInt(4), LENGTH * (i * 2 + 1), BASEH, false);
 		}
 
 		for (int i = 0; i < bases.length; i++) {
 			if (i % 2 == 0) {
-				bases[i] = new AminoAcid(PHOSPHATE, LENGTH * i, BASEH);
+				bases[i] = new AminoAcid(PHOSPHATE, LENGTH * i, BASEH, false);
 			} else {
-				bases[i] = new AminoAcid(GLUCOSE, LENGTH * i, BASEH);
+				bases[i] = new AminoAcid(GLUCOSE, LENGTH * i, BASEH, false);
 			}
 		}
 
@@ -109,37 +113,56 @@ public class Ribosome extends Stage {
 	}
 
 	private void generatePieces() {
-		AffineTransform upsidedown = AffineTransform.getRotateInstance(Math.PI);
 		for (int i = 0; i < bases.length; i++) {
 			pieces[i] = new AminoAcid(bases[i].id);
-			
-			Area newBounds = new Area(upsidedown.createTransformedShape(pieces[i].bounds));
+
+			Area newBounds = flip(pieces[i].bounds);
 			int x = random.nextInt(CellGame.WIDTH);
-			int margin = random.nextInt((int) (CellGame.HEIGHT - BOTTOMBASEH - newBounds.getBounds2D().getHeight()));
-			int y = (int) (BOTTOMBASEH + newBounds.getBounds2D().getHeight() + margin);
-			
+			int margin = random.nextInt((int) (CellGame.HEIGHT - BOTTOMBASEH - newBounds.getBounds().getHeight()));
+			int y = (int) (BOTTOMBASEH + newBounds.getBounds().getHeight() + margin);
+
 			AffineTransform translate = AffineTransform.getTranslateInstance(x, y);
-			pieces[i].setBound(new Area(translate.createTransformedShape(newBounds)));
+			pieces[i].setBounds(new Area(translate.createTransformedShape(newBounds)));
 		}
-		
+
 		for (int i = 0; i < aacids.length; i++) {
 			pieces[i + bases.length] = new AminoAcid(3 - aacids[i].id);
-			
-			Area newBounds = new Area(upsidedown.createTransformedShape(pieces[i + bases.length].bounds));
-			int width = (int) newBounds.getBounds2D().getWidth();
-			int height = (int) newBounds.getBounds2D().getHeight();
+
+			Area newBounds = flip(pieces[i + bases.length].bounds);
+			int width = (int) newBounds.getBounds().getWidth();
+			int height = (int) newBounds.getBounds().getHeight();
 			int x = random.nextInt(CellGame.WIDTH - width) + width;
 			int margin = random.nextInt(CellGame.HEIGHT - BOTTOMBASEH - height);
 			int y = BOTTOMBASEH + height + margin;
-			
+
 			AffineTransform translate = AffineTransform.getTranslateInstance(x, y);
-			pieces[i + bases.length].setBound(new Area(translate.createTransformedShape(newBounds)));
+			pieces[i + bases.length].setBounds(new Area(translate.createTransformedShape(newBounds)));
 		}
 	}
 
 	private Area shift(Area shape, int x, int y) {
 		AffineTransform down = AffineTransform.getTranslateInstance(x, y);
 		return new Area(down.createTransformedShape(shape));
+	}
+
+	private Area flip(Area shape) {
+		int x = shape.getBounds().x;
+		int y = shape.getBounds().y;
+
+		AffineTransform at = new AffineTransform();
+
+		at.setToTranslation(-x, -y);
+		Shape flipped = at.createTransformedShape(shape);
+		at.setToTranslation(0, 0);
+
+		at.setToRotation(Math.PI);
+		flipped = at.createTransformedShape(flipped);
+		at.setToRotation(0);
+
+		at.setToTranslation(x, y);
+		flipped = at.createTransformedShape(flipped);
+
+		return new Area(flipped);
 	}
 
 	private Area getShape(int shape) {
@@ -149,6 +172,12 @@ public class Ribosome extends Stage {
 	@Override
 	public void update() {
 		super.update();
+		if (pickedupind != -1) {
+			AffineTransform at = AffineTransform.getTranslateInstance(InputHandler.currPos.x - InputHandler.prevPos.x,
+					InputHandler.currPos.y - InputHandler.prevPos.y);
+			pieces[pickedupind].setBounds(at.createTransformedShape(pieces[pickedupind].bounds));
+			pieces[pickedupind].color = Color.CYAN;
+		}
 	}
 
 	@Override
@@ -157,7 +186,7 @@ public class Ribosome extends Stage {
 
 		g.setColor(Color.WHITE);
 		g.drawLine(0, BOTTOMBASEH, CellGame.WIDTH, BOTTOMBASEH);
-		
+
 		for (int i = 0; i < numPairs; i++) {
 			g.setColor(aacids[i].color);
 			g.fill(aacids[i].bounds);
@@ -177,6 +206,21 @@ public class Ribosome extends Stage {
 	@Override
 	public void handleInput() {
 		super.handleInput();
+		if (InputHandler.pressed) {
+			for (int i = 0; i < pieces.length; i++) {
+				if (pieces[i].bounds.contains(InputHandler.startPos)) {
+					pickedupind = i;
+				}
+			}
+		} else {
+			for (int i = 0; i < pieces.length; i++) {
+				if (pickedupind == i) {
+					pieces[pickedupind] = new AminoAcid(pieces[pickedupind].id,
+							pieces[pickedupind].bounds.getBounds().x, pieces[pickedupind].bounds.getBounds().y, true);
+					pickedupind = -1;
+				}
+			}
+		}
 	}
 
 	private class AminoAcid {
@@ -185,12 +229,12 @@ public class Ribosome extends Stage {
 		public Color color;
 
 		private Area bounds;
-		
+
 		public AminoAcid(int id) {
-			this(id, 0, 0);
+			this(id, 0, 0, false);
 		}
 
-		public AminoAcid(int id, int x, int y) {
+		public AminoAcid(int id, int x, int y, boolean flipped) {
 			this.id = id;
 			AffineTransform at = AffineTransform.getTranslateInstance(x, y);
 
@@ -222,10 +266,13 @@ public class Ribosome extends Stage {
 				this.bounds = new Area(at.createTransformedShape(shapes[GLUCOSE]));
 				break;
 			}
+			if (flipped) {
+				this.bounds = flip(this.bounds);
+			}
 		}
-		
-		private void setBound(Area bound) {
-			this.bounds = bound;
+
+		private void setBounds(Shape shape) {
+			this.bounds = new Area(shape);
 		}
 
 	}
