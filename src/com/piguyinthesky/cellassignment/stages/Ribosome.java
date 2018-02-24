@@ -87,7 +87,7 @@ public class Ribosome extends Stage {
 		shapes[THYMINE] = getShape(SQUARE);
 		shapes[THYMINE].subtract(getShape(TRIANGLE));
 		shapes[THYMINE].add(shift(getShape(SQUARE), 0, LENGTH));
-		shapes[THYMINE].add(shift(getShape(CIRCLE), 0, LENGTH * 3 / 2));
+		shapes[THYMINE].subtract(shift(getShape(CIRCLE), 0, LENGTH * 3 / 2));
 
 		shapes[CYTOSINE] = getShape(SQUARE);
 		shapes[CYTOSINE].subtract(getShape(TRIANGLE));
@@ -111,14 +111,29 @@ public class Ribosome extends Stage {
 	private void generatePieces() {
 		AffineTransform upsidedown = AffineTransform.getRotateInstance(Math.PI);
 		for (int i = 0; i < bases.length; i++) {
-			pieces[i] = new AminoAcid(bases[i].id, i * LENGTH, BOTTOMBASEH - LENGTH);
+			pieces[i] = new AminoAcid(bases[i].id);
+			
+			Area newBounds = new Area(upsidedown.createTransformedShape(pieces[i].bounds));
+			int x = random.nextInt(CellGame.WIDTH);
+			int margin = random.nextInt((int) (CellGame.HEIGHT - BOTTOMBASEH - newBounds.getBounds2D().getHeight()));
+			int y = (int) (BOTTOMBASEH + newBounds.getBounds2D().getHeight() + margin);
+			
+			AffineTransform translate = AffineTransform.getTranslateInstance(x, y);
+			pieces[i].setBound(new Area(translate.createTransformedShape(newBounds)));
 		}
 		
 		for (int i = 0; i < aacids.length; i++) {
-			int y = random.nextInt(CellGame.HEIGHT - BOTTOMBASEH) + BOTTOMBASEH;
-			int x = random.nextInt(CellGame.WIDTH);
-			pieces[i + bases.length] = new AminoAcid(aacids[i].id, x, y);
-//			pieces[i + bases.length].bound = new Area(upsidedown.createTransformedShape(pieces[i + bases.length].bound));
+			pieces[i + bases.length] = new AminoAcid(3 - aacids[i].id);
+			
+			Area newBounds = new Area(upsidedown.createTransformedShape(pieces[i + bases.length].bounds));
+			int width = (int) newBounds.getBounds2D().getWidth();
+			int height = (int) newBounds.getBounds2D().getHeight();
+			int x = random.nextInt(CellGame.WIDTH - width) + width;
+			int margin = random.nextInt(CellGame.HEIGHT - BOTTOMBASEH - height);
+			int y = BOTTOMBASEH + height + margin;
+			
+			AffineTransform translate = AffineTransform.getTranslateInstance(x, y);
+			pieces[i + bases.length].setBound(new Area(translate.createTransformedShape(newBounds)));
 		}
 	}
 
@@ -145,17 +160,17 @@ public class Ribosome extends Stage {
 		
 		for (int i = 0; i < numPairs; i++) {
 			g.setColor(aacids[i].color);
-			g.fill(aacids[i].bound);
+			g.fill(aacids[i].bounds);
 		}
 
 		for (int i = 0; i < bases.length; i++) {
 			g.setColor(bases[i].color);
-			g.fill(bases[i].bound);
+			g.fill(bases[i].bounds);
 		}
 
 		for (int i = 0; i < pieces.length; i++) {
 			g.setColor(pieces[i].color);
-			g.fill(pieces[i].bound);
+			g.fill(pieces[i].bounds);
 		}
 	}
 
@@ -169,7 +184,11 @@ public class Ribosome extends Stage {
 		private int id;
 		public Color color;
 
-		public Area bound;
+		private Area bounds;
+		
+		public AminoAcid(int id) {
+			this(id, 0, 0);
+		}
 
 		public AminoAcid(int id, int x, int y) {
 			this.id = id;
@@ -178,31 +197,35 @@ public class Ribosome extends Stage {
 			switch (id) {
 			case ADENINE:
 				this.color = Color.BLUE;
-				this.bound = new Area(at.createTransformedShape(shapes[ADENINE]));
+				this.bounds = new Area(at.createTransformedShape(shapes[ADENINE]));
 				break;
 			case THYMINE:
 				this.color = Color.YELLOW;
-				this.bound = new Area(at.createTransformedShape(shapes[THYMINE]));
+				this.bounds = new Area(at.createTransformedShape(shapes[THYMINE]));
 				break;
 			case CYTOSINE:
 				this.color = Color.RED;
-				this.bound = new Area(at.createTransformedShape(shapes[CYTOSINE]));
+				this.bounds = new Area(at.createTransformedShape(shapes[CYTOSINE]));
 				break;
 			case GUANINE:
 				this.color = Color.GREEN;
-				this.bound = new Area(at.createTransformedShape(shapes[GUANINE]));
+				this.bounds = new Area(at.createTransformedShape(shapes[GUANINE]));
 				break;
 			case PHOSPHATE:
 				this.color = Color.GRAY;
 				at.translate(0, -LENGTH);
-				this.bound = new Area(at.createTransformedShape(shapes[PHOSPHATE]));
+				this.bounds = new Area(at.createTransformedShape(shapes[PHOSPHATE]));
 				break;
 			case GLUCOSE:
 				this.color = Color.WHITE;
 				at.translate(0, -LENGTH);
-				this.bound = new Area(at.createTransformedShape(shapes[GLUCOSE]));
+				this.bounds = new Area(at.createTransformedShape(shapes[GLUCOSE]));
 				break;
 			}
+		}
+		
+		private void setBound(Area bound) {
+			this.bounds = bound;
 		}
 
 	}
