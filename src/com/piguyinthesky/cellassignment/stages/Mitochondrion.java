@@ -6,25 +6,21 @@ public class Mitochondrion extends Stage {
 
 	public Mitochondrion(StageManager sm) {
 		super(sm);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public void update() {
-		// TODO Auto-generated method stub
-
+		super.update();
 	}
 
 	@Override
 	public void draw(Graphics2D g) {
-		// TODO Auto-generated method stub
-
+		super.draw(g);
 	}
 
 	@Override
 	public void handleInput() {
-		// TODO Auto-generated method stub
-
+		super.handleInput();
 	}
 
 }

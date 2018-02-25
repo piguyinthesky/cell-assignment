@@ -217,7 +217,7 @@ public class Ribosome extends Stage {
 			g.setColor(templates[shape].color);
 			g.fill(translate.createTransformedShape(shrunkBounds[shape]));
 			g.setFont(new Font("Impact", Font.BOLD, 16));
-			g.drawString(templates[shape].name, x + CellGame.MARGIN / 2, y);
+			g.drawString(templates[shape].name, x + CellGame.MARGIN / 2, y + tallest);
 		}
 	}
 

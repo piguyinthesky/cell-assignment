@@ -14,10 +14,21 @@ public abstract class Stage {
 
 	protected StageManager sm;
 	protected String name;
+	protected String description;
 
 	protected Area[] bounds;
 	protected final int BACK = 0;
 	protected final int NAME = 1;
+
+	protected final int TL = 0;
+	protected final int TC = 1;
+	protected final int TR = 2;
+	protected final int ML = 3;
+	protected final int C = 4;
+	protected final int MR = 5;
+	protected final int BL = 6;
+	protected final int BC = 7;
+	protected final int BR = 8;
 
 	protected boolean showdesc = false;
 
@@ -32,6 +43,13 @@ public abstract class Stage {
 			numBounds = 1;
 		bounds = new Area[2 + numBounds];
 		bounds[BACK] = new Area(new Rectangle(0, 0, 64, 64));
+	}
+
+	public void drawCenteredString(String text, Rectangle r, Graphics2D g, int position) {
+		FontMetrics fm = g.getFontMetrics();
+		int x = (r.width - fm.stringWidth(text)) / 2;
+		int y = (r.height - fm.getHeight()) / 2 + fm.getAscent();
+		g.drawString(text, x, y);
 	}
 
 	protected void update() {

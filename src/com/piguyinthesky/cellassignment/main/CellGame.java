@@ -5,13 +5,13 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 
-import javax.imageio.ImageIO;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import com.piguyinthesky.cellassignment.handlers.InputHandler;
+import com.piguyinthesky.cellassignment.handlers.ResourceHandler;
 import com.piguyinthesky.cellassignment.stages.StageManager;
 
 @SuppressWarnings("serial")
@@ -32,8 +32,9 @@ public class CellGame extends JPanel implements Runnable {
 
 	private StageManager sm;
 	private InputHandler ih;
+	private ResourceHandler rh;
 
-	private String[] imgPaths = {"Animal_Cell.jpg", "arrow.jpg"};
+	private String[] imgPaths = { "Animal_Cell.jpg", "arrow.jpg" };
 	public static Image[] images;
 	public static final int ANIMALCELL = 0;
 	public static final int ARROW = 1;
@@ -61,10 +62,10 @@ public class CellGame extends JPanel implements Runnable {
 		image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
 		g = (Graphics2D) image.getGraphics();
 
-		images = new Image[imgPaths.length];
-		loadImages();
-
 		sm = new StageManager();
+		rh = new ResourceHandler();
+
+		images = rh.loadImages(imgPaths);
 
 		running = true;
 	}
@@ -101,15 +102,25 @@ public class CellGame extends JPanel implements Runnable {
 		}
 	}
 
-	private void loadImages() {
-		for (int i = 0; i < imgPaths.length; i++) {
-			try {
-				BufferedImage image = ImageIO.read(new File("/Users/alexandercai/Documents/Programming/eclipse-workspace/CellAssignment/res/" + imgPaths[i]));
-				images[i] = image;
-			} catch (IOException e) {
-				e.printStackTrace();
+	public static void createAndShowGUI() {
+		JFrame window = new JFrame("The Cell");
+		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		window.setResizable(false);
+
+		window.add(new CellGame());
+		
+		window.pack();
+		window.setLocationRelativeTo(null);
+		window.setVisible(true);
+	}
+
+	public static void main(String[] args) {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				createAndShowGUI();
 			}
-		}
+		});
 	}
 
 }
