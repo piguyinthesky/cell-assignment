@@ -20,6 +20,7 @@ public class CellGame extends JPanel implements Runnable {
 	public static final int WIDTH = 720;
 	public static final int HEIGHT = 480;
 	public static final int SCALE = 1;
+	public static final int MARGIN = HEIGHT / 48;
 
 	private Thread thread;
 	private boolean running;

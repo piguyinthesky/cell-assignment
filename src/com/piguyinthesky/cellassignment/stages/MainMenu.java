@@ -7,12 +7,14 @@ import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.Area;
+
+import com.piguyinthesky.cellassignment.handlers.InputHandler;
 import com.piguyinthesky.cellassignment.main.CellGame;
 
 public class MainMenu extends Stage {
 
 	private Area[] bounds;
-
+	
 	public MainMenu(StageManager sm) {
 		super(sm);
 		bounds = new Area[14];
@@ -24,7 +26,7 @@ public class MainMenu extends Stage {
 		bounds[StageManager.RIBOSOME] = new Area(new Rectangle(610, 125, 10, 10));
 //		bounds[StageManager.VESICLE] = new Area(new Rectangle(400, 20, 190, 130));
 //		bounds[StageManager.ROUGHER] = new Area(new Rectangle(400, 20, 190, 130));
-//		bounds[StageManager.GOLGI] = new Area(new Rectangle(400, 20, 190, 130));
+		bounds[StageManager.GOLGI] = new Area(new Rectangle(420, 240, 550, 360));
 //		bounds[StageManager.CYTOSKELETON] = new Area(new Rectangle(400, 20, 190, 130));
 //		bounds[StageManager.SMOOTHER] = new Area(new Rectangle(400, 20, 190, 130));
 //		bounds[StageManager.MITOCHONDRION] = new Area(new Rectangle(400, 20, 190, 130));
@@ -64,10 +66,15 @@ public class MainMenu extends Stage {
 	public void handleInput() {
 		super.handleInput();
 		
+		if (InputHandler.pressed)
+			System.out.println(InputHandler.currPos.toString());
+		
 		if (clickedIn(bounds[StageManager.NUCLEUS])) {
 			sm.setStage(StageManager.NUCLEUS);
 		} else if (clickedIn(bounds[StageManager.RIBOSOME])) {
 			sm.setStage(StageManager.RIBOSOME);
+		} else if (clickedIn(bounds[StageManager.GOLGI])) {
+			sm.setStage(StageManager.GOLGI);
 		}
 	}
 
